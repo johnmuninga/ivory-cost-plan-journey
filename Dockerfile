@@ -22,7 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
  && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
 WORKDIR /src
 COPY . .
-RUN mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps package
+# .git is excluded from the build context, so skip the git-commit-id plugin
+# (it only stamps version metadata into the build).
+RUN mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps -Dmaven.gitcommitid.skip=true package
 RUN cp otp-shaded/target/otp-shaded-*.jar /otp.jar
 
 ########################################
