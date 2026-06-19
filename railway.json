@@ -5,7 +5,6 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "java -jar /otp.jar --load --serve --port $PORT /data",
     "healthcheckPath": "/otp/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
