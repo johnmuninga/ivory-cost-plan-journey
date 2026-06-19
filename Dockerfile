@@ -22,9 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
  && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
 WORKDIR /src
 COPY . .
-# .m2 cache mount speeds up repeat builds (Railway uses BuildKit).
-RUN --mount=type=cache,id=m2-cache,target=/root/.m2 \
-    mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps package
+RUN mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps package
 RUN cp otp-shaded/target/otp-shaded-*.jar /otp.jar
 
 ########################################
