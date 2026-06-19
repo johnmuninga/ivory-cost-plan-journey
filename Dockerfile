@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 WORKDIR /src
 COPY . .
 # .m2 cache mount speeds up repeat builds (Railway uses BuildKit).
-RUN --mount=type=cache,id=m2-cache,target=/root/.m2 \
+RUN --mount=type=cache,id=s/98e3ed01-55c5-47df-ab5f-8206c75cc862-/root/.m2,target=/root/.m2 \
     mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps package
 RUN cp otp-shaded/target/otp-shaded-*.jar /otp.jar
 
