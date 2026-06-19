@@ -53,3 +53,9 @@ graph.obj
 
 # EPSG files
 application/v??.?.??
+
+# Railway deploy: local data/scripts stay out, but track the deploy files
+/otp-data/
+!/Dockerfile
+!/.dockerignore
+!/railway.json

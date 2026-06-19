@@ -1,0 +1,12 @@
+# Keep the build context small and fast to upload.
+.git
+.idea
+.claude
+**/target
+**/node_modules
+otp-data
+graphs
+doc/user/_build
+test/performance
+*.obj
+*.log
