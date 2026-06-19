@@ -25,7 +25,11 @@ COPY . .
 # .git is excluded from the build context, so skip the git-commit-id plugin
 # (it only stamps version metadata into the build).
 RUN mvn -q -B -DskipTests -Dmaven.test.skip=true -Dps -Dmaven.gitcommitid.skip=true package
-RUN cp otp-shaded/target/otp-shaded-*.jar /otp.jar
+# Pick the runnable shaded jar only (exclude -sources / original- artifacts).
+RUN set -eux; \
+    jar="$(ls otp-shaded/target/otp-shaded-*.jar | grep -Ev 'sources|original' | head -n1)"; \
+    cp "$jar" /otp.jar; \
+    ls -la /otp.jar
 
 ########################################
 # Stage 2 — download data + build graph
