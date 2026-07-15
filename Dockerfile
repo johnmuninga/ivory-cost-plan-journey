@@ -41,6 +41,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /data
 COPY --from=jarbuild /otp.jar /otp.jar
+# Bumping deploy/gtfs-version.txt changes this layer, busting Docker's cache
+# for the download + graph rebuild below (done by the Refresh GTFS workflow,
+# or by hand). Without this, a redeploy would reuse the old cached feed.
+COPY deploy/gtfs-version.txt /build-version.txt
 RUN curl -fSL -o /data/data.osm.pbf "${OSM_URL}" \
  && curl -fSL -H 'accept: application/zip' -o /data/GTFS.zip "${GTFS_URL}"
 # Build + persist graph.obj. Bump -Xmx if the build OOMs on larger data.

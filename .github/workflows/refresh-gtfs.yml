@@ -1,0 +1,57 @@
+name: Refresh GTFS
+
+# Checks the SOTRA GTFS feed's ETag hourly. When it changes, it bumps
+# deploy/gtfs-version.txt and pushes. Railway auto-deploys on that push and
+# rebuilds the image with the fresh feed + graph. No Railway token needed.
+
+on:
+  schedule:
+    - cron: '17 * * * *'   # hourly, at :17
+  workflow_dispatch: {}     # allow manual "Run workflow" from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-gtfs
+  cancel-in-progress: false
+
+env:
+  GTFS_URL: https://gtfs-mobile-api-production.up.railway.app/v1/gtfs/export
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump version file if the feed's ETag changed
+        run: |
+          set -euo pipefail
+
+          etag="$(curl -fsSI -H 'accept: application/zip' "$GTFS_URL" \
+                    | tr -d '\r' \
+                    | awk -F': ' 'tolower($1)=="etag"{print $2}')"
+          echo "Live ETag:   ${etag:-<none>}"
+
+          if [ -z "${etag}" ]; then
+            echo "No ETag returned; skipping."
+            exit 0
+          fi
+
+          current="$(cat deploy/gtfs-version.txt 2>/dev/null | tr -d '[:space:]' || true)"
+          echo "Stored ETag: ${current:-<none>}"
+
+          if [ "${etag}" = "${current}" ]; then
+            echo "Unchanged — nothing to do."
+            exit 0
+          fi
+
+          echo "Feed changed — bumping version file to trigger a redeploy."
+          printf '%s\n' "${etag}" > deploy/gtfs-version.txt
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deploy/gtfs-version.txt
+          git commit -m "chore: GTFS feed changed (${etag}) — trigger Railway redeploy"
+          git push
